@@ -23,42 +23,44 @@ function App() {
 
   function calculateFinalScores(roundScores, selectedWinner, ePlayer) {
     let finalScores = { ...roundScores }
-  
-    // Step 1: Winner takes their points from everyone
+    
+    // Step 1: Winner takes points from everyone
     const winnerPoints = roundScores[selectedWinner]
     Object.keys(roundScores).forEach(playerKey => {
       if (playerKey !== selectedWinner) {
-        const pointsToTake = selectedWinner === ePlayer ? winnerPoints * 2 : winnerPoints
+        // Double points if either the winner or the losing player is E
+        const multiplier = (selectedWinner === ePlayer || playerKey === ePlayer) ? 2 : 1
+        const pointsToTake = winnerPoints * multiplier
         finalScores[playerKey] -= pointsToTake
         finalScores[selectedWinner] += pointsToTake
       }
     })
-
+  
     // Step 2: Calculate differences based on initial scores
     const sortedPlayers = Object.entries(roundScores)
       .filter(([key]) => key !== selectedWinner)
       .sort(([, a], [, b]) => b - a)
-
-    // Process differences
+  
+    // Process differences with double points for E player
     for (let i = 0; i < sortedPlayers.length - 1; i++) {
       const [currentPlayer, currentScore] = sortedPlayers[i]
-    
+      
       for (let j = i + 1; j < sortedPlayers.length; j++) {
         const [targetPlayer, targetScore] = sortedPlayers[j]
         let difference = currentScore - targetScore
-
+        
         // Double the difference if either player is E
-        if (currentPlayer === ePlayer || targetPlayer === ePlayer) {
-          difference *= 2
-        }
-      
+        const multiplier = (currentPlayer === ePlayer || targetPlayer === ePlayer) ? 2 : 1
+        difference *= multiplier
+        
         finalScores[currentPlayer] += difference
         finalScores[targetPlayer] -= difference
       }
     }
-
+  
     return finalScores
   }
+  
   const addNewRoundScores = () => {
     // Reset previous E role
     const resetPlayers = Object.keys(players).reduce((acc, key) => ({
